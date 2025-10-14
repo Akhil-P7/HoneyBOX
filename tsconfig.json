@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",             // Modern JS target
+    "module": "CommonJS",           // Compatible with Electron
+    "rootDir": "./src",             // Source folder
+    "outDir": "./dist",             // Compiled JS folder
+    "strict": true,                 // Full type checking
+    "esModuleInterop": true,        // Allows import electron as default
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,           // Skip checking .d.ts libraries
+    "moduleResolution": "node",
+    "sourceMap": true,              // Optional: for debugging
+    "lib": ["ES2020", "DOM"]        // DOM for renderer, ES for Node
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}

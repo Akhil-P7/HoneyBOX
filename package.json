@@ -1,0 +1,21 @@
+{
+  "name": "honeybox",
+  "version": "1.0.0",
+  "description": "HoneyBOX: Sandbox & Honeytrap Electron App",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && electron .",
+    "dev": "concurrently \"tsc -w\" \"electron .\""
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^24.7.2",
+    "concurrently": "^9.2.1",
+    "electron": "^38.2.2",
+    "electron-reload": "^2.0.0-alpha.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
