@@ -4,7 +4,7 @@ HoneyBOX is an Electron + TypeScript desktop application for simulating sandboxe
 
 ## Project structure
 The repository has the following high-level layout:
-
+```bash
 HoneyBOX/
 ├─ src/
 │  ├─ main.ts        # Electron main process
@@ -13,7 +13,7 @@ HoneyBOX/
 ├─ package.json
 ├─ tsconfig.json
 └─ .gitignore
-
+```
 
 ## Getting started
 ### Prerequisites
