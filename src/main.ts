@@ -9,13 +9,13 @@ function createWindow() {
     width: 1000,
     height: 700,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'), // optional
       nodeIntegration: true,
       contextIsolation: false,
     },
   });
 
-  mainWindow.loadFile(path.join(__dirname, '../src/index.html'));
+  // Load HTML from src directory (main.js is in dist/, so go up one level)
+  mainWindow.loadFile(path.join(__dirname, '..', 'src', 'index.html'));
 }
 
 app.whenReady().then(createWindow);
@@ -33,11 +33,28 @@ function winToWslPath(winPath: string) {
 
 // Helper function to execute a WSL script
 function runScript(scriptName: string, args: string[] = []) {
-  const wslScriptPath = `/mnt/c/Users/dell/Desktop/HoneyBOX/src/wsl-scripts/${scriptName}`;
+  // Dynamically determine the script path based on app location
+  const appPath = app.getAppPath(); // Gets the root directory of the app
+  const scriptPath = path.join(appPath, 'src', 'wsl-scripts', scriptName);
+  const wslScriptPath = winToWslPath(scriptPath);
+  
+  console.log(`[DEBUG] Executing WSL script: ${wslScriptPath}`);
+  console.log(`[DEBUG] Script arguments:`, args);
+  console.log(`[DEBUG] Full command: wsl bash ${wslScriptPath} ${args.join(' ')}`);
   const wsl = spawn('C:\\Windows\\System32\\wsl.exe', ['bash', wslScriptPath, ...args]);
 
   let output = '';
   let errorOutput = '';
+  let isComplete = false;
+
+  // Add 60-second timeout as safety measure
+  const timeout = setTimeout(() => {
+    if (!isComplete) {
+      console.error('[TIMEOUT] Script exceeded 60 seconds, killing process');
+      wsl.kill('SIGTERM');
+      isComplete = true;
+    }
+  }, 60000);
 
   wsl.stdout.on('data', (data) => {
     const text = data.toString();
@@ -53,17 +70,31 @@ function runScript(scriptName: string, args: string[] = []) {
 
   return new Promise((resolve, reject) => {
     wsl.on('close', (code) => {
+      if (isComplete) return; // Already timed out
+      
+      clearTimeout(timeout);
+      isComplete = true;
+      
       if (code === 0) {
         resolve(output || 'Command executed successfully');
       } else {
         reject(`Script failed (exit code ${code}):\n${errorOutput || output}`);
       }
     });
+
+    wsl.on('error', (err) => {
+      if (isComplete) return;
+      
+      clearTimeout(timeout);
+      isComplete = true;
+      reject(`Failed to execute script: ${err.message}`);
+    });
   });
 }
 
 // IPC handlers
 ipcMain.handle('create-sandbox', async (_event, sandboxName: string) => {
+  console.log(`[DEBUG] create-sandbox IPC called with sandboxName:`, sandboxName);
   try {
     return await runScript('create_sandbox.sh', [sandboxName]);
   } catch (error) {
